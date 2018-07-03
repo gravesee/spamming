@@ -1,0 +1,14 @@
+Package: spamming
+Type: Package
+Title: Sparse Matrix Support for Hamming Distance
+Version: 0.0.0
+Author: Eric E. Graves
+Maintainer: Eric E. Graves <gravcon5@gmail.com>
+Description: Calculate distances for sparse binary matrices.
+License: MIT
+Encoding: UTF-8
+LazyData: true
+Imports: Rcpp (>= 0.12.17)
+Depends: Matrix
+LinkingTo: Rcpp
+RoxygenNote: 6.0.1
