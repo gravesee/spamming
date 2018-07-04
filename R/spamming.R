@@ -25,7 +25,7 @@ setMethod(
   c("lngCMatrix", "missing"),
   function(x, y) {
     ## call special hamming form for full distance matrix
-    hamming_ngCMatrix_x_only(Matrix::t(x))
+    hamming_ngCMatrix_x_only(x)
   })
 
 #' Calculate Hamming Distance for All Rows of Matrix
@@ -45,5 +45,7 @@ setMethod(
   function(x, y) {
     ## call special hamming form for full distance matrix
     stopifnot(identical(ncol(x), ncol(y)))
-    hamming_ngCMatrix_x_and_y(Matrix::t(x), Matrix::t(y))
+    hamming_ngCMatrix_x_and_y(x, y)
   })
+
+

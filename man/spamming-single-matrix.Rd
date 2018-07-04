@@ -11,7 +11,7 @@
 \item{x}{A sparse matrix of class \code{lgCMatrix} or \code{ngCMatrix}.}
 }
 \value{
-A \code{\link[stats]{dist}} object of size \code{nrow(x), nrow(x)}
+A \code{\link[stats]{dist}} object of dimension \code{c(nrow(x),nrow(x))}
 where each entry is the hamming distance between row i and row j. See details
 for current status.
 }

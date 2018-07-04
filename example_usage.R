@@ -3,6 +3,11 @@ library(microbenchmark)
 
 ## create random matrices
 x <- Matrix(sample(c(T, F), 1000, T), 100, 10, sparse = TRUE)
+spamming::ngCMatrix_to_array_test(x)
+spamming(x, x[1,,drop=F])
+
+MODE <- hamming_find_mode(x)
+
 y <- Matrix(sample(c(T, F), 100, T), 10, 10, sparse = TRUE)
 
 ## R version of the function
@@ -77,4 +82,8 @@ cl <- hclust(d)
 
 k <- cutree(cl, k = 10)
 tapply(x$Survived, k, mean)
+
+sink("err.log")
+MODE <- hamming_find_mode(x)
+sink()
 
