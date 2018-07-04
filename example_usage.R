@@ -6,7 +6,8 @@ x <- Matrix(sample(c(T, F), 1000, T), 100, 10, sparse = TRUE)
 spamming::ngCMatrix_to_array_test(x)
 spamming(x, x[1,,drop=F])
 
-MODE <- hamming_find_mode(x)
+## test that converting to bit array and back is equal
+all.equal(as(x, "nsparseMatrix"),  test_conversion(x))
 
 y <- Matrix(sample(c(T, F), 100, T), 10, 10, sparse = TRUE)
 

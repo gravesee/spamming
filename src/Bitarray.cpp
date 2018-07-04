@@ -56,7 +56,6 @@ Bitarray bitarray_mode(Bitarray x) {
 Rcpp::S4 bitarray_to_ngCMatrix(Bitarray x) {
   
   IntegerVector dim = IntegerVector::create(x.nrow, x.nbits);
-  Rprintf("nbits: %d\n", x.nbits);
   IntegerVector i;
   IntegerVector p;
   
@@ -64,6 +63,7 @@ Rcpp::S4 bitarray_to_ngCMatrix(Bitarray x) {
   int colptr = 0;
   for (int bit = 0; bit < x.nbits; bit++) {
     p.push_back(colptr);
+    
     // loop over each row
     for (int r = 0; r  < x.nrow; r++) {
       // test if bit is set
@@ -75,11 +75,8 @@ Rcpp::S4 bitarray_to_ngCMatrix(Bitarray x) {
   }
   p.push_back(colptr);
   
-  // allocate all of the memory needed to store the bitsets
-  // Creating an object of Person class
+  // Create S4 Sparse Matrix
   S4 m("ngCMatrix");
-  
-  // Setting values to the slots
   m.slot("i")  = i;
   m.slot("p") = p;
   m.slot("Dim") = dim;

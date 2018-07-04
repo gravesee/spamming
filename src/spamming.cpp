@@ -130,16 +130,18 @@ S4 hamming_find_mode(Rcpp::S4 obj) {
   
   S4 out = bitarray_to_ngCMatrix(m);
   
-  // loop over m and fill a logical vector
-  // LogicalVector out(m.nbits);
-  // for (int bit = 0; bit < m.nbits; bit++) {
-  //   out(bit) = TestBit(m.data[0], bit) != 0;
-  // }
-  
   free_bitarray(x);
   free_bitarray(m);
   
   return out;
+}
+
+// [[Rcpp::export]]
+S4 test_conversion(Rcpp::S4 obj) {
+  Bitarray x = ngCMatrix_to_array(obj);
+  S4 out = bitarray_to_ngCMatrix(x);
+  free_bitarray(x);
+  return(out);
 }
 
 

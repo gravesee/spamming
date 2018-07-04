@@ -17,3 +17,7 @@ hamming_find_mode <- function(obj) {
     .Call('_spamming_hamming_find_mode', PACKAGE = 'spamming', obj)
 }
 
+test_conversion <- function(obj) {
+    .Call('_spamming_test_conversion', PACKAGE = 'spamming', obj)
+}
+
