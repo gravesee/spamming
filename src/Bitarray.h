@@ -1,3 +1,5 @@
+#pragma once
+
 #include <Rcpp.h>
 #include <climits>
 using namespace Rcpp;

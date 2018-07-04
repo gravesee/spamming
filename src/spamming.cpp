@@ -1,6 +1,7 @@
 #include <Rcpp.h>
 #include <climits>
 #include "Bitarray.h"
+#include "ExpectationMaximization.h"
 using namespace Rcpp;
 
 // Lengths MUST be the same
@@ -142,6 +143,31 @@ S4 test_conversion(Rcpp::S4 obj) {
   S4 out = bitarray_to_ngCMatrix(x);
   free_bitarray(x);
   return(out);
+}
+
+// [[Rcpp::export]]
+IntegerVector BMM(Rcpp::S4 obj, int K, int repetitions) {
+  Bitarray x = ngCMatrix_to_array(obj);
+  
+  Rprintf("Creating EM object\n");
+  ExpectationMaximization em = new_ExpectationMaximization(x, K);
+  
+  Rprintf("EM Step\n");
+  PerformEMstep(&em, repetitions);
+  
+  Rprintf("Getting cluster assignments\n");
+  IntegerVector result(x.nrow);
+  for (int r = 0; r < x.nrow; r++) {
+    result(r) = GetCluster(&em, x, r);
+  }
+  
+  Rprintf("Free EM\n");
+  free_ExpectationMaximization(em);
+  
+  Rprintf("Free Bitarray\n");
+  free_bitarray(x);
+  
+  return result;
 }
 
 

@@ -21,3 +21,7 @@ test_conversion <- function(obj) {
     .Call('_spamming_test_conversion', PACKAGE = 'spamming', obj)
 }
 
+BMM <- function(obj, K, repetitions) {
+    .Call('_spamming_BMM', PACKAGE = 'spamming', obj, K, repetitions)
+}
+

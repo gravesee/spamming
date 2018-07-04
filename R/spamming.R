@@ -49,3 +49,35 @@ setMethod(
   })
 
 
+## kmeans for hamming distance?
+spamming_kmeans <- function(m, k) {
+  
+  ## sample random rows
+  i <- sample.int(nrow(m), k)
+  modes <- m[i,,drop=F]
+  
+  ## calculate distances
+  d <- hamming_ngCMatrix_x_and_y(m, modes)
+  
+  ## cluster assignment
+  cl <- apply(d, 1, which.min)
+  
+  repeat {
+    print("iterating")
+  # update the modes
+    for (i in unique(cl)) {
+      f <- cl == i
+      modes[i,] <- hamming_find_mode(m[f,,drop=F])
+    }
+    
+    d2 <- hamming_ngCMatrix_x_and_y(m, modes)
+    new_cl <- apply(d2, 1, which.min)
+    
+    if (all(cl == new_cl)) break
+    
+    cl <- new_cl
+  } 
+  cl
+}
+
+

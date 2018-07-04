@@ -3,13 +3,16 @@ library(microbenchmark)
 
 ## create random matrices
 x <- Matrix(sample(c(T, F), 1000, T), 100, 10, sparse = TRUE)
-spamming::ngCMatrix_to_array_test(x)
-spamming(x, x[1,,drop=F])
+
+spamming(x, x[10:1,,drop=F])
 
 ## test that converting to bit array and back is equal
 all.equal(as(x, "nsparseMatrix"),  test_conversion(x))
 
-y <- Matrix(sample(c(T, F), 100, T), 10, 10, sparse = TRUE)
+y <- Matrix(sample(c(T, F), 10*10000, T), 10000, 10, sparse = TRUE)
+BMM(y, 4L, 10L)
+
+
 
 ## R version of the function
 spamming_r <- function(m) {
@@ -45,16 +48,20 @@ head(d2)
 ### Find nearest neighbors
 
 library(isofor)
-
+library(titanic)
 
 v <- c("Survived", "Sex", "Fare", "Pclass", "Embarked", "Age", "SibSp", "Parch")
 x <- titanic_train[v]
 chars <- sapply(x, is.character)
 x[chars] <- lapply(x[chars], factor)
-iso <- iForest(x[-1], nt = 500, phi = 8)
+iso <- iForest(x[-1], nt = 20, phi = 32)
 
 nodes <- Matrix(predict(iso, x[-1], sparse = TRUE) == 1)
 nodes <- as(nodes, "lgCMatrix")
+
+k <- BMM(nodes, 10L, 20L)
+
+k <- spamming_kmeans(nodes, k=20)
 
 ### choose 5 random rows
 i <- sample.int(nrow(nodes), 5)

@@ -61,6 +61,19 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// BMM
+IntegerVector BMM(Rcpp::S4 obj, int K, int repetitions);
+RcppExport SEXP _spamming_BMM(SEXP objSEXP, SEXP KSEXP, SEXP repetitionsSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< Rcpp::S4 >::type obj(objSEXP);
+    Rcpp::traits::input_parameter< int >::type K(KSEXP);
+    Rcpp::traits::input_parameter< int >::type repetitions(repetitionsSEXP);
+    rcpp_result_gen = Rcpp::wrap(BMM(obj, K, repetitions));
+    return rcpp_result_gen;
+END_RCPP
+}
 
 static const R_CallMethodDef CallEntries[] = {
     {"_spamming_ngCMatrix_to_array_test", (DL_FUNC) &_spamming_ngCMatrix_to_array_test, 1},
@@ -68,6 +81,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_spamming_hamming_ngCMatrix_x_and_y", (DL_FUNC) &_spamming_hamming_ngCMatrix_x_and_y, 2},
     {"_spamming_hamming_find_mode", (DL_FUNC) &_spamming_hamming_find_mode, 1},
     {"_spamming_test_conversion", (DL_FUNC) &_spamming_test_conversion, 1},
+    {"_spamming_BMM", (DL_FUNC) &_spamming_BMM, 3},
     {NULL, NULL, 0}
 };
 
