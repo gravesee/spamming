@@ -88,22 +88,30 @@ Bitarray ngCMatrix_to_array(Rcpp::S4 obj) {
 
 
 // [[Rcpp::export]]
-IntegerMatrix hamming_ngCMatrix_x_only(Rcpp::S4 obj) {
-
+Rcpp::IntegerVector hamming_ngCMatrix_x_only(Rcpp::S4 obj) {
+  
   Bitarray x = ngCMatrix_to_array(obj);
-
-  IntegerMatrix dist(x.nrow, x.nrow);
-
+  
+  IntegerVector dist((x.nrow * (x.nrow - 1)) / 2);
+  
+  int i = 0;
   for (int r = 0; r < x.nrow - 1; r++) {
-    for (int nr = r + 1; nr < x.nrow; nr++) {
-      dist(r, nr) = hamming_dist(x.data[r], x.data[nr], x.ncol);
+    for (int nr = r + 1; nr < x.nrow; nr++, i++) {
+      dist[i] = hamming_dist(x.data[r], x.data[nr], x.ncol);
     }
   }
-
+  
   free_bitarray(x);
-
+  
+  // Create an S3 dist object
+  dist.attr("Size")  = IntegerVector::create(x.nrow);
+  dist.attr("call")  = R_NilValue;
+  dist.attr("class") = CharacterVector::create("dist");
+  dist.attr("Diag")  = LogicalVector::create(false);
+  dist.attr("Upper") = LogicalVector::create(false);
+  
   return dist;
-
+  
 }
 
 

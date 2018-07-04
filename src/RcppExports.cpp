@@ -6,7 +6,7 @@
 using namespace Rcpp;
 
 // hamming_ngCMatrix_x_only
-IntegerMatrix hamming_ngCMatrix_x_only(Rcpp::S4 obj);
+Rcpp::IntegerVector hamming_ngCMatrix_x_only(Rcpp::S4 obj);
 RcppExport SEXP _spamming_hamming_ngCMatrix_x_only(SEXP objSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
