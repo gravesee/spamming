@@ -54,12 +54,14 @@ v <- c("Survived", "Sex", "Fare", "Pclass", "Embarked", "Age", "SibSp", "Parch")
 x <- titanic_train[v]
 chars <- sapply(x, is.character)
 x[chars] <- lapply(x[chars], factor)
-iso <- iForest(x[-1], nt = 20, phi = 32)
+iso <- iForest(x[-1], nt = 100, phi = 8)
 
 nodes <- Matrix(predict(iso, x[-1], sparse = TRUE) == 1)
 nodes <- as(nodes, "lgCMatrix")
 
-k <- BMM(nodes, 10L, 20L)
+sink("err.log")
+k <- BMM(nodes, 10L, 1L)
+sink()
 
 k <- spamming_kmeans(nodes, k=20)
 

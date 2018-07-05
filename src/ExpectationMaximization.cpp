@@ -132,6 +132,10 @@ void MaximizationStep(ExpectationMaximization* em) {
   
 };
 
+// double lliklihood(double mu, int bit) {
+//   pow(em->_mu[k][i], bit_is_set) * pow(1.0 - em->_mu[k][i], 1.0 - bit_is_set);
+// }
+
 double ExpectationSubstep(ExpectationMaximization* em, int n, int k) {
   double z_nk = em->_pi[k];
   for (int i = 0; i < em->D; i++) {
@@ -139,11 +143,17 @@ double ExpectationSubstep(ExpectationMaximization* em, int n, int k) {
     int bit_is_set = (TestBit(em->x.data[n], i)!=0);
     //z_nk *= pow(em->_mu[k][i], bit_is_set) * pow(1.0 - em->_mu[k][i], 1.0 - bit_is_set);
     
+    // TODO: Implement scaling to avoid underflow using this paper: 
+    // http://u.cs.biu.ac.il/~shey/919-2011/index.files/underflow%20and%20smoothing%20in%20EM.pdf
+    
     z_nk += log(pow(em->_mu[k][i], bit_is_set)) + log(pow(1.0 - em->_mu[k][i], 1.0 - bit_is_set));
+    //Rprintf("z_nk: %f\n", z_nk);
   
   }
   
+  
   return exp(z_nk);
+  //return z_nk;
 };
 
 double* AverageX(ExpectationMaximization* em, int m) {
