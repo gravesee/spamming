@@ -1,7 +1,8 @@
 #include <Rcpp.h>
 #include <climits>
 #include "Bitarray.h"
-#include "ExpectationMaximization.h"
+#include "BMM.h"
+//#include "ExpectationMaximization.h"
 using namespace Rcpp;
 
 // Lengths MUST be the same
@@ -39,7 +40,7 @@ SEXP ngCMatrix_to_array_test(Rcpp::S4 obj) {
     // loop over rows
     for (int r = start; r < stop; r++) {
       int row = i[r];
-      SetBit(x.data[row], bit);
+      set(x, row, bit);
     }
   }
   
@@ -63,7 +64,8 @@ Bitarray ngCMatrix_to_array(Rcpp::S4 obj) {
     // loop over rows
     for (int r = start; r < stop; r++) {
       int row = i[r];
-      SetBit(x.data[row], bit);
+      set(x, row, bit);
+      //SetBit(x.data[row], bit);
     }
   }
   
@@ -145,30 +147,65 @@ S4 test_conversion(Rcpp::S4 obj) {
   return(out);
 }
 
+// IntegerVector BMM(Rcpp::S4 obj, int K, int repetitions) {
+//   Bitarray x = ngCMatrix_to_array(obj);
+//   
+//   Rprintf("Creating EM object\n");
+//   ExpectationMaximization em = new_ExpectationMaximization(x, K);
+//   
+//   Rprintf("EM Step\n");
+//   PerformEMstep(&em, repetitions);
+//   
+//   Rprintf("Getting cluster assignments\n");
+//   IntegerVector result(x.nrow);
+//   for (int r = 0; r < x.nrow; r++) {
+//     result(r) = GetCluster(&em, x, r);
+//   }
+//   
+//   Rprintf("Free EM\n");
+//   free_ExpectationMaximization(em);
+//   
+//   Rprintf("Free Bitarray\n");
+//   free_bitarray(x);
+//   
+//   return result;
+// }
+
+
+
+
+
 // [[Rcpp::export]]
-IntegerVector BMM(Rcpp::S4 obj, int K, int repetitions) {
+SEXP BMM_v2(Rcpp::S4 obj, int K, int max_iter) {
   Bitarray x = ngCMatrix_to_array(obj);
   
-  Rprintf("Creating EM object\n");
-  ExpectationMaximization em = new_ExpectationMaximization(x, K);
+  BMM_Result res = em(x, K, max_iter);
   
-  Rprintf("EM Step\n");
-  PerformEMstep(&em, repetitions);
-  
-  Rprintf("Getting cluster assignments\n");
-  IntegerVector result(x.nrow);
-  for (int r = 0; r < x.nrow; r++) {
-    result(r) = GetCluster(&em, x, r);
+  // load stuff into R object
+  Rcpp::List protos;
+  Rcpp::NumericVector pis(K);
+  for (int k = 0; k < K; k++) {
+    Rcpp::NumericVector proto(x.nbits);
+    
+    for (int i = 0; i < x.nbits; i++) {
+      proto[i] = res.protos[k][i];
+    }
+    
+    protos.push_back(proto);
+    
+    pis[k] = res.pis[k];
   }
   
-  Rprintf("Free EM\n");
-  free_ExpectationMaximization(em);
   
-  Rprintf("Free Bitarray\n");
-  free_bitarray(x);
+  free_BMM_Result(&res);
   
-  return result;
-}
+  return Rcpp::List::create(
+    Rcpp::Named("prototypes") = protos,
+    Rcpp::Named("pis") = pis,
+    Rcpp::Named("ll") = res.ll
+  );
+  
+};
 
 
 

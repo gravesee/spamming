@@ -45,7 +45,6 @@ log_p_xn_i <- function(xn, proto) {
 
   lik
 }
-
 ## each row of data is a mixture of P1 & P2 represented by Zn1 .. Zn2... etc..
 
 ### Expectation Step
@@ -79,6 +78,7 @@ log_z_ni <- function(X, pis, protos) {
     ## loop over pis
     for (i in seq_along(pis)) {
 
+      #zni[n,i] <- log(pis[i]) + log_p_xn_i(X[n,], protos[[i]])
       zni[n,i] <- log(pis[i]) + log_p_xn_i(X[n,], protos[[i]])
     }
   }
@@ -111,12 +111,41 @@ proto_i <- function(zni, protos, X, i) {
   #num <- .01
   #den <- .01
   # den <- 1/nrow(zni)
-
+  #browser()
   for (n in seq.int(nrow(X))) {
     num <- num + zni[n,i] * X[n,]
     den <- den + zni[n,i]
   }
+  
+  
   pmax(num / den, 0.01)
+}
+
+
+proto_i_new <- function(zni, protos, X, k) {
+  
+  
+  proto <- numeric(ncol(X))
+  ## loop over n
+  num <- rep(1/nrow(zni), ncol(X))
+  den <- rep(1/nrow(zni), ncol(X))
+  #num <- .01
+  #den <- .01
+  # den <- 1/nrow(zni)
+  ## for (i in seq_along(protos))
+  #browser()
+  for (i in seq.int(ncol(X))) {
+    
+    #browser()
+    for (n in seq.int(nrow(X))) {
+      num[i] <- num[i] + zni[n,k] * X[n,i]
+      den[i] <- den[i] + zni[n,k]
+    }
+    
+    proto[i] = num[i] / den[i]
+  }
+
+  proto
 }
 
 ## calculate the total likelihood
@@ -131,9 +160,13 @@ likelihood <- function(X, znk, pis, protos) {
 
       # mu <- max(znk[n,k], 0.0001)
 
+      #ll <- ll + znk[n,k] * (log(pis[k]) + log_p_xn_i(X[n,], protos[[k]]))
+      
       ll <- ll + znk[n,k] * (log(pis[k]) + log_p_xn_i(X[n,], protos[[k]]))
+      
+      # log_p_xn_i_wtrick
 
-      if (is.nan(ll)) browser()
+      #if (is.nan(ll)) browser()
     }
   }
 
@@ -158,7 +191,7 @@ sample_prototypes <- function(X, k) {
 }
 
 
-em <- function(X, k=2, max.iter=10, protos=NULL, pis=NULL) {
+em <- function(X, k=2, max.iter=10, protos=NULL, pis=NULL, test=FALSE) {
   ## randomly create starting values
 
   if (is.null(protos) && is.null(pis)) {
@@ -191,7 +224,8 @@ em <- function(X, k=2, max.iter=10, protos=NULL, pis=NULL) {
 
     new_protos <- list()
     for (i in seq_along(protos)) {
-      new_protos[[i]] <- proto_i(zni, protos, X, i)
+      FUN = if(test) proto_i_new else proto_i
+      new_protos[[i]] <- FUN(zni, protos, X, i)
     }
 
     protos <- new_protos
@@ -217,54 +251,68 @@ em <- function(X, k=2, max.iter=10, protos=NULL, pis=NULL) {
 
 
 
-P1 <- c(0.1, 0.1, 0.9, 0.9, 0.9)
+P1 <- c(0.1, 0.1, 0.1, 0.1, 0.6)
 P2 <- c(0.9, 0.9, 0.9, 0.1, 0.1)
 protos <- list(P1, P2)
 pis <- c(0.50, 0.50)
 
-X <- create_sample_record(100000, protos, pis)
+X <- make_test_data(1000, protos, pis)
+set.seed(1)
+res1 <- em(X, k=2, max.iter = 10)
+set.seed(1)
+res2 <- em(X, k=2, max.iter = 10, test = TRUE)
+
+Y <- Matrix(X == 1)
 
 
-res <- em(X, k=2, max.iter = 100)
+sink("err.log")
+res3 <- BMM_v2(Y, 20L, 10L)
+sink()
 
+# 
+# 
+# 
+# to.read = file("C:/Users/gravesee/Downloads/t10k-images.idx3-ubyte", "rb")
+# 
+# readBin(to.read, integer(), n=4, endian="big")
+# 
+# images <- sapply(seq.int(10000), function(x) {
+#   readBin(to.read,integer(), size=1, n=28*28, endian="big")
+# })
+# 
+# d <- t(images)
+# d <- (d < 0) + 0
+# 
+# 
+# novar <- apply(d[1:1000,], 2, max)
+# 
+# 
+# res <- em(d[1:500,], k=10, max.iter = 10)
+# 
+# res_con <- em(d[1:500,], k=10, max.iter = 10, protos = res_con$protos, pis=res_con$pis)
+# 
+# 
+# ### plot images
+# 
+# par(mfrow=c(4,3))
+# par(mar=c(0,0,0,0))
+# for (i in seq_along(res_con$protos)) {
+#   image(matrix(res_con$protos[[i]], 28, 28)[,28:1], axes=F)
+# }
+# par(mfrow=c(1,1))
+# 
+# image(matrix(d[4,], 28, 28)[,28:1])
+# 
+# 
+# head(z_ni(X, pis, protos))
+# head(log_z_ni(X, pis, protos))
+# 
+# 
+# 
+# 
+# 
+K <- 2
+zni <- matrix(1/nrow(X), nrow(X), K)
 
-
-to.read = file("C:/Users/gravesee/Downloads/t10k-images.idx3-ubyte", "rb")
-
-readBin(to.read, integer(), n=4, endian="big")
-
-images <- sapply(seq.int(10000), function(x) {
-  readBin(to.read,integer(), size=1, n=28*28, endian="big")
-})
-
-d <- t(images)
-d <- (d < 0) + 0
-
-
-novar <- apply(d[1:1000,], 2, max)
-
-
-res <- em(d[1:500,], k=10, max.iter = 10)
-
-res_con <- em(d[1:500,], k=10, max.iter = 10, protos = res_con$protos, pis=res_con$pis)
-
-
-### plot images
-
-par(mfrow=c(4,3))
-par(mar=c(0,0,0,0))
-for (i in seq_along(res_con$protos)) {
-  image(matrix(res_con$protos[[i]], 28, 28)[,28:1], axes=F)
-}
-par(mfrow=c(1,1))
-
-image(matrix(d[4,], 28, 28)[,28:1])
-
-
-head(z_ni(X, pis, protos))
-head(log_z_ni(X, pis, protos))
-
-
-
-
-
+proto_i(zni, P1, X, 1)
+proto_i_new(zni, P1, X, 1)

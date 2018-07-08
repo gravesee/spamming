@@ -32,6 +32,35 @@ int** allocate_bytes(int nrow, int nbits) {
   return m;
 }
 
+
+int at(Bitarray x, int row, int bit) {
+  return (int) (TestBit(x.data[row],bit) != 0);
+};
+
+void set(Bitarray x, int row, int bit) {
+  SetBit(x.data[row], bit);
+};
+
+int* get_row(Bitarray x, int row) {
+  int* res = (int*) malloc(x.nbits * sizeof(int));
+  
+  for (int col = 0; col < x.nbits; col++) {
+    res[col] = at(x, row, col);
+  }
+  
+  return res;
+};
+
+int* get_col(Bitarray x, int col) {
+  int* res = (int*) malloc(x.nrow * sizeof(int));
+  
+  for (int row = 0; row < x.nrow; row++) {
+    res[row] = at(x, row, col);
+  }
+  
+  return res;
+};
+
 /* find the mode of a bitarray
 */
 Bitarray bitarray_mode(Bitarray x) {

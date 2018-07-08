@@ -27,6 +27,16 @@ typedef struct  {
   int nrow, ncol, nbits;
 } Bitarray;
 
+
+
+int at(Bitarray x, int row, int bit);
+
+void set(Bitarray x, int row, int bit);
+
+int* get_row(Bitarray x, int row);
+
+int* get_col(Bitarray x, int col);
+
 /*
  * Helper method returning number of bytes need to store nbits for each machine
  * Calculated as the # of bits needed / # bits in an int

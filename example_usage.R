@@ -9,9 +9,10 @@ spamming(x, x[10:1,,drop=F])
 ## test that converting to bit array and back is equal
 all.equal(as(x, "nsparseMatrix"),  test_conversion(x))
 
-y <- Matrix(sample(c(T, F), 10*10000, T), 10000, 10, sparse = TRUE)
-BMM(y, 4L, 10L)
-
+y <- Matrix(sample(c(T, F), 10*100000, T), 10000, 100, sparse = TRUE)
+sink("err.log")
+BMM_v2(x, 2L, 1L)
+sink()
 
 
 ## R version of the function
