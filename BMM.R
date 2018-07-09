@@ -253,22 +253,50 @@ em <- function(X, k=2, max.iter=10, protos=NULL, pis=NULL, test=FALSE) {
 
 P1 <- c(0.1, 0.1, 0.1, 0.1, 0.6)
 P2 <- c(0.9, 0.9, 0.9, 0.1, 0.1)
-protos <- list(P1, P2)
-pis <- c(0.50, 0.50)
+P3 <- c(0.90, 0.05, 0.05, 0.02, 0.90)
+P3 <- P3/sum(P3)
+P4 <- c(0.1, 0.1, 0.9, 0.1, 0.1)
+P4 <- P4/sum(P4)
+
+protos <- list(P1, P2, P3, P4)
+pis <- rep(1/length(protos), length(protos))
 
 X <- make_test_data(1000, protos, pis)
 set.seed(1)
-res1 <- em(X, k=2, max.iter = 10)
+res1 <- em(X, k=4, max.iter = 1000)
 set.seed(1)
 res2 <- em(X, k=2, max.iter = 10, test = TRUE)
 
 Y <- Matrix(X == 1)
+set.seed(1)
+res3 <- BMM_v2(Y, 4L, 1000L)
 
 
 sink("err.log")
-res3 <- BMM_v2(Y, 20L, 10L)
 sink()
 
+s <- sample(nrow(Y), nrow(Y)/2)
+dev <- Y[s,]
+val <- Y[-s]
+
+bmms <- lapply(as.integer(2:10), function(k) {
+  BMM_v2(Y, k, 50L)
+})
+
+lls <- sapply(bmms, "[[", "ll")
+
+BIC <- function(x, K, n) {
+  -2*x + K*log(n)
+}
+
+
+
+
+plot(mapply(BIC, lls, 2:10*ncol(Y), MoreArgs = list(n=nrow(Y))))
+
+sapply(lls, BIC, )
+
+plot(lls)
 # 
 # 
 # 

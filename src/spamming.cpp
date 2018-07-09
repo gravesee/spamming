@@ -176,10 +176,10 @@ S4 test_conversion(Rcpp::S4 obj) {
 
 
 // [[Rcpp::export]]
-SEXP BMM_v2(Rcpp::S4 obj, int K, int max_iter) {
+SEXP BMM_v2(Rcpp::S4 obj, int K, int max_iter, int verbose) {
   Bitarray x = ngCMatrix_to_array(obj);
   
-  BMM_Result res = em(x, K, max_iter);
+  BMM_Result res = em(x, K, max_iter, verbose);
   
   // load stuff into R object
   Rcpp::List protos;
@@ -196,12 +196,17 @@ SEXP BMM_v2(Rcpp::S4 obj, int K, int max_iter) {
     pis[k] = res.pis[k];
   }
   
-  
+  Rcpp::IntegerVector cluster(x.nrow);
+  for (int n = 0; n < x.nrow; n++) {
+    cluster[n] = res.cluster[n];
+  } 
+
   free_BMM_Result(&res);
   
   return Rcpp::List::create(
     Rcpp::Named("prototypes") = protos,
     Rcpp::Named("pis") = pis,
+    Rcpp::Named("cluster") = cluster,
     Rcpp::Named("ll") = res.ll
   );
   

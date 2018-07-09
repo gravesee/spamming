@@ -62,15 +62,16 @@ BEGIN_RCPP
 END_RCPP
 }
 // BMM_v2
-SEXP BMM_v2(Rcpp::S4 obj, int K, int max_iter);
-RcppExport SEXP _spamming_BMM_v2(SEXP objSEXP, SEXP KSEXP, SEXP max_iterSEXP) {
+SEXP BMM_v2(Rcpp::S4 obj, int K, int max_iter, int verbose);
+RcppExport SEXP _spamming_BMM_v2(SEXP objSEXP, SEXP KSEXP, SEXP max_iterSEXP, SEXP verboseSEXP) {
 BEGIN_RCPP
     Rcpp::RObject rcpp_result_gen;
     Rcpp::RNGScope rcpp_rngScope_gen;
     Rcpp::traits::input_parameter< Rcpp::S4 >::type obj(objSEXP);
     Rcpp::traits::input_parameter< int >::type K(KSEXP);
     Rcpp::traits::input_parameter< int >::type max_iter(max_iterSEXP);
-    rcpp_result_gen = Rcpp::wrap(BMM_v2(obj, K, max_iter));
+    Rcpp::traits::input_parameter< int >::type verbose(verboseSEXP);
+    rcpp_result_gen = Rcpp::wrap(BMM_v2(obj, K, max_iter, verbose));
     return rcpp_result_gen;
 END_RCPP
 }
@@ -81,7 +82,7 @@ static const R_CallMethodDef CallEntries[] = {
     {"_spamming_hamming_ngCMatrix_x_and_y", (DL_FUNC) &_spamming_hamming_ngCMatrix_x_and_y, 2},
     {"_spamming_hamming_find_mode", (DL_FUNC) &_spamming_hamming_find_mode, 1},
     {"_spamming_test_conversion", (DL_FUNC) &_spamming_test_conversion, 1},
-    {"_spamming_BMM_v2", (DL_FUNC) &_spamming_BMM_v2, 3},
+    {"_spamming_BMM_v2", (DL_FUNC) &_spamming_BMM_v2, 4},
     {NULL, NULL, 0}
 };
 

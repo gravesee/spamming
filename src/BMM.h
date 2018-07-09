@@ -6,7 +6,10 @@ using namespace Rcpp;
 
 // port from R to Rcpp
 
-double clip(double x, double lo, double hi) {
+double clip(double x) {
+  
+  double lo = 0.000000001;
+  double hi = 0.999999999; 
   
   if (x < lo) {
     x = lo;
@@ -22,7 +25,7 @@ double log_p_xn_i(Bitarray x, int row, double* proto) {
   
   for (int i = 0; i < x.nbits; i++) {
     
-    double mu = clip(proto[i], 0.0001, 0.9999);
+    double mu = clip(proto[i]);
     int xni = at(x, row, i);
     
     ll += xni * log(mu) + (1 - xni) * log(1 - mu);
@@ -93,7 +96,7 @@ void proto_i(Bitarray x, double** znk, double* proto, int k) {
       
     }
     
-    proto[i] = clip(num / den, 0.01, 0.99);
+    proto[i] = clip(num / den);
     
   }
     
@@ -119,24 +122,10 @@ double* sample_pis(int K) {
   
   double* pis = (double*) calloc(K, sizeof(double));
   
-  double total = 0;
-  
   for (int k = 0; k < K; k++) {
-    
-    GetRNGstate();
-    pis[k] = unif_rand() * 0.5 + 0.25;
-    PutRNGstate();
-    
-    total += pis[k];
-    
+    pis[k] = 1.0/K;
   }
-  
-  for (int k = 0; k < K; k++) {
-    pis[k] /= total;
-  }
-  
   return pis;
-  
 }
 
 double** sample_prototypes(Bitarray x, int K) {
@@ -160,7 +149,7 @@ double** sample_prototypes(Bitarray x, int K) {
       PutRNGstate();
       
       protos[k][i] = 0.25*at(x, row, i) + 0.75*rand;
-
+      
     }
   }
   return protos;
@@ -183,6 +172,7 @@ double** allocate_znk(int N, int K, int D) {
 typedef struct {
   double ** protos;
   double* pis;
+  int * cluster;
   int K;
   int D;
   double ll;
@@ -195,41 +185,76 @@ void free_BMM_Result(BMM_Result* x) {
     free(x->protos[k]);
   }
   free(x->protos);
+  free(x->cluster);
 }
 
+
 // return a struct with pis and protos?
-BMM_Result em(Bitarray x, int K, int max_iter) {
+BMM_Result em(Bitarray x, int K, int max_iter, int verbose) {
   
   double** protos = sample_prototypes(x, K);
   double* pis = sample_pis(K);
   double** znk = allocate_znk(x.nrow, K, x.nbits);
 
-  double old_ll = loglik(x, znk, pis, protos, K);
-  
+  //double old_ll = loglik(x, znk, pis, protos, K);
+  double thresh = 1e-6;
+  bool converged = 0;
+  double prev = 0;
+  double ll = -DBL_MAX;
   int iter = 0;
-  while( iter < max_iter) {
+  
+  while (iter < max_iter && !converged) {
+    prev = ll;
+    ll = 0;
     
     // Expectation
     log_z_nk(x, znk, pis, protos, K);
     
+    // Calculate log likelihood
+    ll = loglik(x, znk, pis, protos, K);
     
-    // Maximization
+    if (verbose) {
+      Rprintf(" %4d | %15.4f\n", iter, ll);
+    }
+    
+    // Check converged
+    if (ll - prev < thresh) {
+      if (verbose) {
+        Rprintf("-- Converged --\n");
+      }
+      converged=1;
+      break;
+    }
+      
+    
+    // M-Step /////////////
     p_i(pis, znk, K, x.nrow);
     
     for (int k = 0; k < K; k++) {
       proto_i(x, znk, protos[k], k);
     }
-    
-    double new_ll = loglik(x, znk, pis, protos, K);
-    
-    old_ll = new_ll;
+    // End M-Step /////////
     
     iter++;
-    
   }
   
-  // free everything
+  // get cluster
+  int * cluster = (int*) calloc(x.nrow, sizeof(int));
   
+  for (int n = 0; n < x.nrow; n++) {
+    
+    double max = 0;
+  
+    for (int k = 0; k < K; k++) {
+      if (znk[n][k] > max) {
+        max = znk[n][k];
+        cluster[n] = k;
+      }
+    }
+  }
+  
+  
+  // free everything
   for (int n = 0; n < x.nrow; n++) {
     free(znk[n]);
   }
@@ -239,9 +264,10 @@ BMM_Result em(Bitarray x, int K, int max_iter) {
   
   result.protos = protos;
   result.pis = pis;
+  result.cluster = cluster;
   result.D = x.nbits;
   result.K = K;
-  result.ll = old_ll;
+  result.ll = ll;
   
   return result;
   
